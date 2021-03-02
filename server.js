@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors')
 const randomID = require('@olaf-wilkosz/unique-id-generator');
+const db = require('./db');
 
 const app = express();
 
@@ -8,22 +9,17 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-const db = [
-  { id: 1, author: 'John Doe', text: 'This company is worth every coin!' },
-  { id: 2, author: 'Amanda Doe', text: 'They really know how to make you happy.' },
-];
-
 app.get('/testimonials', (req, res) => {
-  res.json(db);
+  res.json(db.testimonials);
 });
 
 app.get('/testimonials/random', (req, res) => {
-  const random = Math.ceil(Math.random() * db.length);
-  res.json(db.find(item => item.id == random));
+  const random = Math.ceil(Math.random() * db.testimonials.length);
+  res.json(db.testimonials.find(item => item.id == random));
 });
 
 app.get('/testimonials/:id', (req, res) => {
-  res.json(db.find(item => item.id == req.params.id));
+  res.json(db.testimonials.find(item => item.id == req.params.id));
 });
 
 app.post('/testimonials', (req, res) => {
@@ -33,7 +29,7 @@ app.post('/testimonials', (req, res) => {
     author: author,
     text: text,
   }
-  db.push(newTestimonial);
+  db.testimonials.push(newTestimonial);
   res.json({ message: 'OK' });
 });
 
@@ -45,15 +41,15 @@ app.put('/testimonials/:id', (req, res) => {
     author: author,
     text: text,
   };
-  const testimonialToBeUpdated = db.find(item => item.id == id);
-  const index = db.indexOf(testimonialToBeUpdated);
-  db[index] = updatedTestimonial;
+  const testimonialToBeUpdated = db.testimonials.find(item => item.id == id);
+  const index = db.testimonials.indexOf(testimonialToBeUpdated);
+  db.testimonials[index] = updatedTestimonial;
   res.json({ message: 'OK' });
 });
 
 app.delete('/testimonials/:id', (req, res) => {
   const id = req.params;
-  db.splice(id, 1);
+  db.testimonials.splice(id, 1);
   res.json({ message: 'OK' });
 });
 
