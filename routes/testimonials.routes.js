@@ -8,12 +8,18 @@ router.route('/testimonials').get((req, res) => {
 });
 
 router.route('/testimonials/random').get((req, res) => {
-  const random = Math.ceil(Math.random() * db.testimonials.length);
-  res.json(db.testimonials.find(item => item.id == random));
+  const random = Math.floor(Math.random() * db.testimonials.length);
+  res.json(db.testimonials[random]);
 });
 
 router.route('/testimonials/:id').get((req, res) => {
-  res.json(db.testimonials.find(item => item.id == req.params.id));
+  const id = req.params.id;
+  console.log('id:', id);
+  if (db.testimonials.find(item => item.id == req.params.id)) {
+    res.json(db.testimonials.find(item => item.id == req.params.id));
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  }
 });
 
 router.route('/testimonials').post((req, res) => {

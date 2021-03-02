@@ -8,7 +8,13 @@ router.route('/seats').get((req, res) => {
 });
 
 router.route('/seats/:id').get((req, res) => {
-  res.json(db.seats.find(item => item.id == req.params.id));
+  const id = req.params.id;
+  console.log('id:', id);
+  if (db.seats.find(item => item.id == req.params.id)) {
+    res.json(db.seats.find(item => item.id == req.params.id));
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  }
 });
 
 router.route('/seats').post((req, res) => {

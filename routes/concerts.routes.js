@@ -8,7 +8,13 @@ router.route('/concerts').get((req, res) => {
 });
 
 router.route('/concerts/:id').get((req, res) => {
-  res.json(db.concerts.find(item => item.id == req.params.id));
+  const id = req.params.id;
+  console.log('id:', id);
+  if (db.concerts.find(item => item.id == req.params.id)) {
+    res.json(db.concerts.find(item => item.id == req.params.id));
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  }
 });
 
 router.route('/concerts').post((req, res) => {
