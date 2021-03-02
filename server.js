@@ -18,11 +18,12 @@ app.get('/testimonials', (req, res) => {
 });
 
 app.get('/testimonials/random', (req, res) => {
-  res.json(db[Math.floor(Math.random() * db.length)]);
+  const random = Math.ceil(Math.random() * db.length);
+  res.json(db.find(item => item.id == random));
 });
 
 app.get('/testimonials/:id', (req, res) => {
-  res.json(db.filter(item => item.id == req.params.id));
+  res.json(db.find(item => item.id == req.params.id));
 });
 
 app.post('/testimonials', (req, res) => {
@@ -54,6 +55,10 @@ app.delete('/testimonials/:id', (req, res) => {
   const id = req.params;
   db.splice(id, 1);
   res.json({ message: 'OK' });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not found...' });
 });
 
 app.listen(8000, () => {
