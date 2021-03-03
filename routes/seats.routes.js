@@ -9,12 +9,11 @@ router.route('/seats').get((req, res) => {
 
 router.route('/seats/:id').get((req, res) => {
   const id = req.params.id;
-  console.log('id:', id);
   if (db.seats.find(item => item.id == req.params.id)) {
     res.json(db.seats.find(item => item.id == req.params.id));
   } else {
     res.status(404).json({ message: 'Not found...' });
-  }
+  };
 });
 
 router.route('/seats').post((req, res) => {
@@ -25,15 +24,20 @@ router.route('/seats').post((req, res) => {
     seat: seat,
     client: client,
     email: email,
-  }
+  };
   db.seats.push(newBooking);
   res.json({ message: 'OK' });
 });
 
 router.route('/seats/:id').delete((req, res) => {
   const id = req.params.id;
-  db.seats.splice(item => item.id == id, 1);
-  res.json({ message: 'OK' });
+  const index = db.seats.indexOf(db.seats.find(item => item.id == id));
+  if (db.seats.find(item => item.id == req.params.id)) {
+    db.seats.splice(index, 1);
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 router.route('/seats/:id').put((req, res) => {
@@ -46,10 +50,13 @@ router.route('/seats/:id').put((req, res) => {
     client: client,
     email: email,
   }
-  const bookingToBeUpdated = db.seats.find(item => item.id == id);
-  const index = db.seats.indexOf(bookingToBeUpdated);
-  db.seats[index] = updatedBooking;
-  res.json({ message: 'OK' });
+  const index = db.seats.indexOf(db.seats.find(item => item.id == id));
+  if (db.seats.find(item => item.id == req.params.id)) {
+    db.seats[index] = updatedBooking;
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 module.exports = router;

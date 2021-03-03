@@ -14,12 +14,11 @@ router.route('/testimonials/random').get((req, res) => {
 
 router.route('/testimonials/:id').get((req, res) => {
   const id = req.params.id;
-  console.log('id:', id);
   if (db.testimonials.find(item => item.id == req.params.id)) {
     res.json(db.testimonials.find(item => item.id == req.params.id));
   } else {
     res.status(404).json({ message: 'Not found...' });
-  }
+  };
 });
 
 router.route('/testimonials').post((req, res) => {
@@ -28,7 +27,7 @@ router.route('/testimonials').post((req, res) => {
     id: randomID(8),
     author: author,
     text: text,
-  }
+  };
   db.testimonials.push(newTestimonial);
   res.json({ message: 'OK' });
 });
@@ -41,16 +40,24 @@ router.route('/testimonials/:id').put((req, res) => {
     author: author,
     text: text,
   };
-  const testimonialToBeUpdated = db.testimonials.find(item => item.id == id);
-  const index = db.testimonials.indexOf(testimonialToBeUpdated);
-  db.testimonials[index] = updatedTestimonial;
-  res.json({ message: 'OK' });
+  const index = db.testimonials.indexOf(db.testimonials.find(item => item.id == id));
+  if (db.testimonials.find(item => item.id == req.params.id)) {
+    db.testimonials[index] = updatedTestimonial;
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 router.route('/testimonials/:id').delete((req, res) => {
   const id = req.params.id;
-  db.testimonials.splice(item => item.id == id, 1);
-  res.json({ message: 'OK' });
+  const index = db.testimonials.indexOf(db.testimonials.find(item => item.id == id));
+  if (db.testimonials.find(item => item.id == req.params.id)) {
+    db.testimonials.splice(index, 1);
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 module.exports = router;

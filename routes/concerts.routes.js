@@ -9,12 +9,11 @@ router.route('/concerts').get((req, res) => {
 
 router.route('/concerts/:id').get((req, res) => {
   const id = req.params.id;
-  console.log('id:', id);
   if (db.concerts.find(item => item.id == req.params.id)) {
     res.json(db.concerts.find(item => item.id == req.params.id));
   } else {
     res.status(404).json({ message: 'Not found...' });
-  }
+  };
 });
 
 router.route('/concerts').post((req, res) => {
@@ -26,15 +25,20 @@ router.route('/concerts').post((req, res) => {
     price: price,
     day: day,
     image: image,
-  }
+  };
   db.concerts.push(newConcert);
   res.json({ message: 'OK' });
 });
 
 router.route('/concerts/:id').delete((req, res) => {
   const id = req.params.id;
-  db.concerts.splice(item => item.id == id, 1);
-  res.json({ message: 'OK' });
+  const index = db.concerts.indexOf(db.concerts.find(item => item.id == id));
+  if (db.concerts.find(item => item.id == req.params.id)) {
+    db.concerts.splice(index, 1);
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 router.route('/concerts/:id').put((req, res) => {
@@ -47,11 +51,14 @@ router.route('/concerts/:id').put((req, res) => {
     price: price,
     day: day,
     image: image,
-  }
-  const concertToBeUpdated = db.concerts.find(item => item.id == id);
-  const index = db.concerts.indexOf(concertToBeUpdated);
-  db.concerts[index] = updatedConcert;
-  res.json({ message: 'OK' });
+  };
+  const index = db.concerts.indexOf(db.concerts.find(item => item.id == id));
+  if (db.concerts.find(item => item.id == req.params.id)) {
+    db.concerts[index] = updatedConcert;
+    res.json({ message: 'OK' });
+  } else {
+    res.status(404).json({ message: 'Not found...' });
+  };
 });
 
 module.exports = router;
