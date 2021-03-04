@@ -14,8 +14,9 @@ router.route('/testimonials/random').get((req, res) => {
 
 router.route('/testimonials/:id').get((req, res) => {
   const id = req.params.id;
-  if (db.testimonials.find(item => item.id == req.params.id)) {
-    res.json(db.testimonials.find(item => item.id == req.params.id));
+  const foundDbItem = db.testimonials.find(item => item.id == id);
+  if (foundDbItem) {
+    res.json(foundDbItem);
   } else {
     res.status(404).json({ message: 'Not found...' });
   };
@@ -40,8 +41,9 @@ router.route('/testimonials/:id').put((req, res) => {
     author: author,
     text: text,
   };
-  const index = db.testimonials.indexOf(db.testimonials.find(item => item.id == id));
-  if (db.testimonials.find(item => item.id == req.params.id)) {
+  const foundDbItem = db.testimonials.find(item => item.id == id);
+  const index = db.testimonials.indexOf(foundDbItem);
+  if (foundDbItem) {
     db.testimonials[index] = updatedTestimonial;
     res.json({ message: 'OK' });
   } else {
@@ -51,8 +53,9 @@ router.route('/testimonials/:id').put((req, res) => {
 
 router.route('/testimonials/:id').delete((req, res) => {
   const id = req.params.id;
-  const index = db.testimonials.indexOf(db.testimonials.find(item => item.id == id));
-  if (db.testimonials.find(item => item.id == req.params.id)) {
+  const foundDbItem = db.testimonials.find(item => item.id == id);
+  const index = db.testimonials.indexOf(foundDbItem);
+  if (foundDbItem) {
     db.testimonials.splice(index, 1);
     res.json({ message: 'OK' });
   } else {

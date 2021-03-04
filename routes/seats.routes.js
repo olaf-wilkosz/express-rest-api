@@ -9,8 +9,9 @@ router.route('/seats').get((req, res) => {
 
 router.route('/seats/:id').get((req, res) => {
   const id = req.params.id;
-  if (db.seats.find(item => item.id == req.params.id)) {
-    res.json(db.seats.find(item => item.id == req.params.id));
+  const foundDbItem = db.seats.find(item => item.id == id);
+  if (foundDbItem) {
+    res.json(foundDbItem);
   } else {
     res.status(404).json({ message: 'Not found...' });
   };
@@ -31,8 +32,9 @@ router.route('/seats').post((req, res) => {
 
 router.route('/seats/:id').delete((req, res) => {
   const id = req.params.id;
-  const index = db.seats.indexOf(db.seats.find(item => item.id == id));
-  if (db.seats.find(item => item.id == req.params.id)) {
+  const foundDbItem = db.seats.find(item => item.id == id);
+  const index = db.seats.indexOf(foundDbItem);
+  if (foundDbItem) {
     db.seats.splice(index, 1);
     res.json({ message: 'OK' });
   } else {
@@ -50,8 +52,9 @@ router.route('/seats/:id').put((req, res) => {
     client: client,
     email: email,
   }
-  const index = db.seats.indexOf(db.seats.find(item => item.id == id));
-  if (db.seats.find(item => item.id == req.params.id)) {
+  const foundDbItem = db.seats.find(item => item.id == id);
+  const index = db.seats.indexOf(foundDbItem);
+  if (foundDbItem) {
     db.seats[index] = updatedBooking;
     res.json({ message: 'OK' });
   } else {
