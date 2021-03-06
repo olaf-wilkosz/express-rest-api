@@ -21,13 +21,13 @@ router.route('/seats').post((req, res) => {
   const { day, seat, client, email } = req.body;
   const newBooking = {
     id: randomID(8),
-    day: day,
-    seat: seat,
+    day: parseInt(day),
+    seat: parseInt(seat),
     client: client,
     email: email,
   };
   if (db.seats.some(item => (item.seat === newBooking.seat && item.day === newBooking.day))) {
-    res.json({ message: "The slot is already taken..." });
+    res.status(409).json({ message: "The slot is already taken..." });
   } else {
     db.seats.push(newBooking);
     res.json({ message: 'OK' });
@@ -51,8 +51,8 @@ router.route('/seats/:id').put((req, res) => {
   const id = req.params.id;
   const updatedBooking = {
     id: id,
-    day: day,
-    seat: seat,
+    day: parseInt(day),
+    seat: parseInt(seat),
     client: client,
     email: email,
   }
