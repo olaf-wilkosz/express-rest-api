@@ -1,70 +1,85 @@
 const express = require('express');
+const { seats } = require('../db');
 const router = express.Router();
-const randomID = require('@olaf-wilkosz/unique-id-generator');
-const db = require('../db');
+const Seat = require('../models/seat.model');
 
-router.route('/seats').get((req, res) => {
-  res.json(db.seats);
-});
-
-router.route('/seats/:id').get((req, res) => {
-  const id = req.params.id;
-  const foundDbItem = db.seats.find(item => item.id == id);
-  if (foundDbItem) {
-    res.json(foundDbItem);
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
-});
-
-router.route('/seats').post((req, res) => {
-  const { day, seat, client, email } = req.body;
-  const newBooking = {
-    id: randomID(8),
-    day: parseInt(day),
-    seat: parseInt(seat),
-    client: client,
-    email: email,
-  };
-  if (db.seats.some(item => (item.seat === newBooking.seat && item.day === newBooking.day))) {
-    res.status(409).json({ message: "The slot is already taken..." });
-  } else {
-    db.seats.push(newBooking);
-    req.io.emit('seatsUpdated', db.seats);
-    res.json({ message: 'OK' });
+router.get('/seats', async (req, res) => {
+  try {
+    res.json(await Seat.find());
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
   }
 });
 
-router.route('/seats/:id').delete((req, res) => {
-  const id = req.params.id;
-  const foundDbItem = db.seats.find(item => item.id == id);
-  const index = db.seats.indexOf(foundDbItem);
-  if (foundDbItem) {
-    db.seats.splice(index, 1);
-    res.json({ message: 'OK' });
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
+router.get('/seats/:id', async (req, res) => {
+  try {
+    const seat = await Seat.findById(req.params.id);
+    if (!seat) res.status(404).json({ message: 'Not found' });
+    else res.json(seat);
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.route('/seats/:id').put((req, res) => {
-  const { day, seat, client, email } = req.body;
-  const id = req.params.id;
-  const updatedBooking = {
-    id: id,
-    day: parseInt(day),
-    seat: parseInt(seat),
-    client: client,
-    email: email,
+router.post('/seats', async (req, res) => {
+  try {
+    const { day, seat, client, email } = req.body;
+    const seatExists = await Seat.findOne({ $and: [{ seat: seat, day: day }] });
+    const newBooking = new Seat({
+      day: parseInt(day),
+      seat: parseInt(seat),
+      client: client,
+      email: email,
+    });
+    if (seatExists !== null) {
+      res.status(409).json({ message: "The slot is already taken..." });
+    } else {
+      res.json({ message: 'OK' });
+      await newBooking.save();
+      req.io.emit('seatsUpdated', db.seats);
+      res.json({ message: 'OK' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err });
   }
-  const foundDbItem = db.seats.find(item => item.id == id);
-  const index = db.seats.indexOf(foundDbItem);
-  if (foundDbItem) {
-    db.seats[index] = updatedBooking;
-    res.json({ message: 'OK' });
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
+});
+
+router.delete('/seats/:id', async (req, res) => {
+  try {
+    const seat = await Seat.findById(req.params.id);
+    if (seat) {
+      await Seat.deleteOne({ _id: req.params.id });
+      res.json({ message: 'OK' });
+    }
+    else res.status(404).json({ message: 'Not found...' });
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
+});
+
+router.put('/seats/:id', async (req, res) => {
+  const { day, seat, client, email } = req.body;
+  try {
+    const seat = await Seat.findById(req.params.id);
+    if (seat) {
+      await Seat.updateOne({ _id: req.params.id }, {
+        $set: {
+          day: parseInt(day),
+          seat: parseInt(seat),
+          client: client,
+          email: email,
+        }
+      });
+      res.json({ message: 'OK' });
+    }
+    else res.status(404).json({ message: 'Not found...' });
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
 module.exports = router;

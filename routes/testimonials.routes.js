@@ -1,66 +1,86 @@
 const express = require('express');
 const router = express.Router();
-const randomID = require('@olaf-wilkosz/unique-id-generator');
-const db = require('../db');
+const Testimonial = require('../models/testimonial.model');
 
-router.route('/testimonials').get((req, res) => {
-  res.json(db.testimonials);
+router.get('/testimonials', async (req, res) => {
+  try {
+    res.json(await Testimonial.find());
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.route('/testimonials/random').get((req, res) => {
-  const random = Math.floor(Math.random() * db.testimonials.length);
-  res.json(db.testimonials[random]);
+router.get('/testimonials/random', async (req, res) => {
+  try {
+    const count = await Testimonial.countDocuments();
+    const rand = Math.floor(Math.random() * count);
+    const testimonial = await Testimonial.findOne().skip(rand);
+    if (!testimonial) res.status(404).json({ message: 'Not found' });
+    else res.json(testimonial);
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.route('/testimonials/:id').get((req, res) => {
-  const id = req.params.id;
-  const foundDbItem = db.testimonials.find(item => item.id == id);
-  if (foundDbItem) {
-    res.json(foundDbItem);
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
+router.get('/testimonials/:id', async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (!testimonial) res.status(404).json({ message: 'Not found' });
+    else res.json(testimonial);
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.route('/testimonials').post((req, res) => {
-  const { author, text } = req.body;
-  const newTestimonial = {
-    id: randomID(8),
-    author: author,
-    text: text,
-  };
-  db.testimonials.push(newTestimonial);
-  res.json({ message: 'OK' });
-});
-
-router.route('/testimonials/:id').put((req, res) => {
-  const { author, text } = req.body;
-  const id = req.params.id;
-  const updatedTestimonial = {
-    id: id,
-    author: author,
-    text: text,
-  };
-  const foundDbItem = db.testimonials.find(item => item.id == id);
-  const index = db.testimonials.indexOf(foundDbItem);
-  if (foundDbItem) {
-    db.testimonials[index] = updatedTestimonial;
+router.post('/testimonials', async (req, res) => {
+  try {
+    const { author, text } = req.body;
+    const newTestimonial = new Testimonial({
+      author: author,
+      text: text,
+    });
+    await newTestimonial.save();
     res.json({ message: 'OK' });
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.route('/testimonials/:id').delete((req, res) => {
-  const id = req.params.id;
-  const foundDbItem = db.testimonials.find(item => item.id == id);
-  const index = db.testimonials.indexOf(foundDbItem);
-  if (foundDbItem) {
-    db.testimonials.splice(index, 1);
-    res.json({ message: 'OK' });
-  } else {
-    res.status(404).json({ message: 'Not found...' });
-  };
+router.put('/testimonials/:id', async (req, res) => {
+  const { author, text } = req.body;
+  try {
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (testimonial) {
+      await Testimonial.updateOne({ _id: req.params.id }, {
+        $set: {
+          author: author,
+          text: text,
+        }
+      });
+      res.json({ message: 'OK' });
+    }
+    else res.status(404).json({ message: 'Not found...' });
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
+});
+
+router.delete('/testimonials/:id', async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findById(req.params.id);
+    if (testimonial) {
+      await Testimonial.deleteOne({ _id: req.params.id });
+      res.json({ message: 'OK' });
+    }
+    else res.status(404).json({ message: 'Not found...' });
+  }
+  catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
 module.exports = router;
