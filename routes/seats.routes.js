@@ -14,9 +14,13 @@ router.get('/seats', async (req, res) => {
 
 router.get('/seats/:id', async (req, res) => {
   try {
-    const seat = await Seat.findById(req.params.id);
-    if (!seat) res.status(404).json({ message: 'Not found' });
-    else res.json(seat);
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      res.status(404).json({ message: 'Provided id is not valid' });
+    } else {
+      const seat = await Seat.findById(req.params.id);
+      if (!seat) res.status(404).json({ message: 'Not found' });
+      else res.json(seat);
+    }
   }
   catch (err) {
     res.status(500).json({ message: err });
