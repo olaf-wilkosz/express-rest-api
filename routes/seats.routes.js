@@ -36,7 +36,6 @@ router.post('/seats', async (req, res) => {
     if (seatExists !== null) {
       res.status(409).json({ message: "The slot is already taken..." });
     } else {
-      res.json({ message: 'OK' });
       await newBooking.save();
       req.io.emit('seatsUpdated', db.seats);
       res.json({ message: 'OK' });
