@@ -1,7 +1,7 @@
 const express = require('express');
-const { seats } = require('../db');
 const router = express.Router();
 const Seat = require('../models/seat.model');
+const mongoose = require('mongoose');
 
 router.get('/seats', async (req, res) => {
   try {
@@ -14,7 +14,7 @@ router.get('/seats', async (req, res) => {
 
 router.get('/seats/:id', async (req, res) => {
   try {
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       res.status(404).json({ message: 'Provided id is not valid' });
     } else {
       const seat = await Seat.findById(req.params.id);
@@ -41,7 +41,7 @@ router.post('/seats', async (req, res) => {
       res.status(409).json({ message: "The slot is already taken..." });
     } else {
       await newBooking.save();
-      req.io.emit('seatsUpdated', db.seats);
+      // req.io.emit('seatsUpdated', seats);
       res.json({ message: 'OK' });
     }
   } catch (err) {
@@ -49,36 +49,44 @@ router.post('/seats', async (req, res) => {
   }
 });
 
-router.delete('/seats/:id', async (req, res) => {
+router.put('/seats/:id', async (req, res) => {
+  const { day, seat, client, email } = req.body;
   try {
-    const seat = await Seat.findById(req.params.id);
-    if (seat) {
-      await Seat.deleteOne({ _id: req.params.id });
-      res.json({ message: 'OK' });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(404).json({ message: 'Provided id is not valid' });
+    } else {
+      const booking = await Seat.findById(req.params.id);
+      if (booking) {
+        await Seat.updateOne({ _id: req.params.id }, {
+          $set: {
+            day: parseInt(day),
+            seat: parseInt(seat),
+            client: client,
+            email: email,
+          }
+        });
+        res.json({ message: 'OK' });
+      }
+      else res.status(404).json({ message: 'Not found...' });
     }
-    else res.status(404).json({ message: 'Not found...' });
   }
   catch (err) {
     res.status(500).json({ message: err });
   }
 });
 
-router.put('/seats/:id', async (req, res) => {
-  const { day, seat, client, email } = req.body;
+router.delete('/seats/:id', async (req, res) => {
   try {
-    const seat = await Seat.findById(req.params.id);
-    if (seat) {
-      await Seat.updateOne({ _id: req.params.id }, {
-        $set: {
-          day: parseInt(day),
-          seat: parseInt(seat),
-          client: client,
-          email: email,
-        }
-      });
-      res.json({ message: 'OK' });
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(404).json({ message: 'Provided id is not valid' });
+    } else {
+      const seat = await Seat.findById(req.params.id);
+      if (seat) {
+        await Seat.deleteOne({ _id: req.params.id });
+        res.json({ message: 'OK' });
+      }
+      else res.status(404).json({ message: 'Not found...' });
     }
-    else res.status(404).json({ message: 'Not found...' });
   }
   catch (err) {
     res.status(500).json({ message: err });
