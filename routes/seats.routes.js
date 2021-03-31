@@ -41,7 +41,8 @@ router.post('/seats', async (req, res) => {
       res.status(409).json({ message: "The slot is already taken..." });
     } else {
       await newBooking.save();
-      // req.io.emit('seatsUpdated', seats);
+      const seats = await Seat.find();
+      req.io.emit('seatsUpdated', seats);
       res.json({ message: 'OK' });
     }
   } catch (err) {
@@ -65,6 +66,8 @@ router.put('/seats/:id', async (req, res) => {
             email: email,
           }
         });
+        const seats = await Seat.find();
+        req.io.emit('seatsUpdated', seats);
         res.json({ message: 'OK' });
       }
       else res.status(404).json({ message: 'Not found...' });
@@ -83,6 +86,8 @@ router.delete('/seats/:id', async (req, res) => {
       const seat = await Seat.findById(req.params.id);
       if (seat) {
         await Seat.deleteOne({ _id: req.params.id });
+        const seats = await Seat.find();
+        req.io.emit('seatsUpdated', seats);
         res.json({ message: 'OK' });
       }
       else res.status(404).json({ message: 'Not found...' });
